@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSN 1 - Live Streaming</title>
+    <!-- Memuat library hls.js dari CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        /* Gaya dasar untuk body */
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Container utama (Glassmorphism) */
+        .player-wrapper {
+            position: relative;
+            width: 90%;
+            max-width: 850px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 1s ease-out forwards;
+            box-sizing: border-box;
+        }
+
+        /* Header / Judul */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: -webkit-linear-gradient(45deg, #00d2ff, #3a7bd5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            color: #b0bec5;
+        }
+
+        /* Container Video untuk posisi relatif overlay */
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            background-color: #050505;
+            aspect-ratio: 16 / 9; /* Menjaga rasio agar sesuai dengan thumbnail */
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+            outline: none;
+            object-fit: cover;
+        }
+
+        /* Overlay Tombol Play Awal - Diperbarui dengan Gambar Latar Belakang */
+        #play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Memasukkan URL gambar dari log Http Canary */
+            background-image: url('https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/1427316a5fb5244762a0278e632d5151~tplv-tiktokx-origin.image?dr=14575&refresh_token=de5c1364&x-expires=1783101600&x-signature=gSFHrexixjXskyKM%2F3jJfA782Os%3D&t=4d5b0474&ps=13740610&shp=f21f527a&shcp=9b759fb9&idc=my');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Efek gelap transparan di atas gambar agar tombol play tetap terlihat jelas */
+        #play-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            border: none;
+            border-radius: 50%;
+            width: 70px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #play-overlay:hover .play-btn {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.6);
+        }
+
+        /* Ikon Segitiga Play */
+        .play-btn::after {
+            content: '';
+            display: inline-block;
+            margin-left: 5px;
+            border-style: solid;
+            border-width: 12px 0 12px 20px;
+            border-color: transparent transparent transparent #ffffff;
+        }
+
+        .overlay-text {
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Info Box */
+        .info-box {
+            margin-top: 20px;
+            background: rgba(255, 0, 0, 0.1);
+            border-left: 4px solid #ff4757;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 480px) {
+            .player-wrapper { width: 95%; padding: 15px; border-radius: 16px; }
+            .header h1 { font-size: 22px; }
+            .play-btn { width: 60px; height: 60px; }
+            .play-btn::after { border-width: 10px 0 10px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="player-wrapper">
+        <div class="header">
+            <h1>TSN 1</h1>
+            <p>Live Streaming HD</p>
+        </div>
+        
+        <div class="video-container">
+            <!-- Menambahkan poster gambar bawaan ke tag video sebagai cadangan -->
+            <video id="video-player" poster="https://p16-common-sign.tiktokcdn.com/tos-alisg-avt-0068/1427316a5fb5244762a0278e632d5151~tplv-tiktokx-origin.image?dr=14575&refresh_token=de5c1364&x-expires=1783101600&x-signature=gSFHrexixjXskyKM%2F3jJfA782Os%3D&t=4d5b0474&ps=13740610&shp=f21f527a&shcp=9b759fb9&idc=my" controls playsinline></video>
+            
+            <!-- Layar Penutup (Overlay) dengan gambar latar -->
+            <div id="play-overlay">
+                <div class="play-btn"></div>
+                <div class="overlay-text">Ketuk untuk Memutar</div>
+            </div>
+        </div>
+
+        <div class="info-box" id="error-info">
+            <strong>Gagal Memutar:</strong> Server memblokir akses karena mendeteksi "Referer" yang tidak valid. Server mewajibkan referer berasal dari <code>https://xyzstreams.st</code>. Anda memerlukan script Proxy PHP untuk memutar video ini.
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('video-player');
+    const overlay = document.getElementById('play-overlay');
+    const overlayText = document.querySelector('.overlay-text');
+    const errorBox = document.getElementById('error-info');
+    
+    // URL sudah dihubungkan ke Proxy Lokal Termux Anda
+    const streamUrl = 'http://proxy.mrphreakers.workers.dev?url=https://inproviszon.st/tsn1-xyz-waUvqaAACr.m3u8';
+
+    let isError = false;
+
+    if (Hls.isSupported()) {
+        const hls = new Hls({ maxBufferLength: 30, enableWorker: true });
+        hls.loadSource(streamUrl);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                isError = true;
+                errorBox.style.display = 'block';
+                errorBox.innerHTML = `<strong>Error Fatal:</strong> Gagal memuat video dari Proxy. (${data.type})`;
+                overlay.style.display = 'none';
+                console.error("HLS Error:", data);
+            }
+        });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = streamUrl;
+    }
+
+    // Fungsi memutar saat overlay diklik
+    overlay.addEventListener('click', () => {
+        if(isError) {
+            alert("Terjadi error pada koneksi Proxy. Silakan muat ulang halaman.");
+            return;
+        }
+
+        // Memberikan respon visual bahwa tombol telah ditekan
+        overlayText.innerText = "Memuat Video...";
+        overlay.style.cursor = "wait";
+
+        video.play().then(() => {
+            // Jika berhasil memutar, hilangkan overlay
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 400);
+        }).catch(error => {
+            // Memunculkan pesan pop-up jika browser memblokir atau gagal memutar
+            alert("Gagal memutar video: " + error.message);
+            overlayText.innerText = "Ketuk untuk Memutar";
+            overlay.style.cursor = "pointer";
+        });
+    });
+});
+    </script>
+</body>
+</html>
