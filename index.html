@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Sai Foza • Live Streaming</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <!-- Font & Ikon Premium -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #060b10;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 0 12px 20px;
+      background-image: radial-gradient(ellipse at 50% 0%, #14222e 0%, #060b10 70%);
+      margin: 0;
+    }
+
+    /* ===== HEADER ELEGAN ===== */
+    .main-header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 8px 12px;
+      margin-bottom: 8px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      box-shadow: 0 8px 18px rgba(0, 114, 255, 0.3);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.3px;
+      background: linear-gradient(to right, #ffffff, #c0d9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b8aac;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header-status {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #bdd3f0;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      background: #2ed573;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #2ed573;
+      animation: softPulse 2s infinite;
+    }
+
+    @keyframes softPulse {
+      0% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.8; transform: scale(1); }
+    }
+
+    /* ===== CONTAINER UTAMA ===== */
+    .app-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 30px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      background: #0c141c;
+    }
+
+    /* Video di atas */
+    .video-hero {
+      position: relative;
+      width: 100%;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      background: #010101;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* Overlay play modern */
+    .play-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(6, 11, 16, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 20;
+      transition: opacity 0.4s ease, visibility 0.4s;
+    }
+
+    .play-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .play-btn {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(20px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: 0.25s ease;
+      box-shadow: 0 12px 28px rgba(0, 160, 255, 0.2);
+      margin-bottom: 18px;
+    }
+
+    .play-overlay:hover .play-btn {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: scale(1.04);
+    }
+
+    .play-btn i {
+      font-size: 36px;
+      color: white;
+      margin-left: 5px;
+      filter: drop-shadow(0 4px 6px black);
+    }
+
+    .overlay-label {
+      font-weight: 600;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px 24px;
+      border-radius: 40px;
+      letter-spacing: 0.3px;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Panel bawah */
+    .control-panel {
+      background: rgba(14, 21, 28, 0.9);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      padding: 18px 18px 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .now-playing-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .channel-identity {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #e0f0ff, #a0c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .live-badge {
+      background: #ff2d55;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 16px rgba(255, 45, 85, 0.4);
+    }
+
+    .error-box {
+      background: rgba(255, 59, 92, 0.12);
+      border-left: 4px solid #ff3b5c;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      color: #ffb3bf;
+      display: none;
+      backdrop-filter: blur(8px);
+    }
+
+    /* Grid channel */
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .channel-chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      padding: 14px 4px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: #b0c2d4;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+    }
+
+    .channel-chip i {
+      font-size: 17px;
+      color: #7f8fa0;
+      transition: color 0.2s;
+    }
+
+    .channel-chip:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .channel-chip.active {
+      background: linear-gradient(145deg, #1a3542, #0e2632);
+      border-color: #38bdf8;
+      color: white;
+      box-shadow: 0 10px 20px rgba(56, 189, 248, 0.25);
+    }
+
+    .channel-chip.active i {
+      color: #7dd3fc;
+    }
+
+    @media (max-width: 550px) {
+      .channel-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .brand-name {
+        font-size: 18px;
+      }
+      .play-btn {
+        width: 66px;
+        height: 66px;
+      }
+      .play-btn i {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER SAI FOZA | LIVE STREAMING -->
+  <div class="main-header">
+    <div class="logo-area">
+      <div class="logo-icon">
+        <i class="fas fa-bolt"></i>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">Sai Foza</span>
+        <span class="brand-sub">Live Streaming</span>
+      </div>
+    </div>
+    <div class="header-status">
+      <span class="status-dot"></span>
+      <span>Online</span>
+    </div>
+  </div>
+
+  <!-- KONTEN UTAMA: VIDEO DI ATAS -->
+  <div class="app-container">
+    <div class="video-hero">
+      <video id="videoPlayer" controls playsinline></video>
+      
+      <div class="play-overlay" id="playOverlay">
+        <div class="play-btn">
+          <i class="fas fa-play"></i>
+        </div>
+        <span class="overlay-label" id="overlayStatus">Ketuk untuk Memutar</span>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="now-playing-row">
+        <span class="channel-identity" id="channelTitleDisplay">Pilih Channel</span>
+        <div class="live-badge">
+          <i class="fas fa-circle"></i> LIVE
+        </div>
+      </div>
+
+      <div class="error-box" id="errorPanel">
+        <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+        <span id="errorText">Tidak dapat memuat streaming.</span>
+      </div>
+
+      <div class="channel-grid">
+        <div class="channel-chip" id="chip-caze" onclick="changeChannel('caze', true)">
+          <i class="fas fa-tv"></i> Caze TV
+        </div>
+        <!-- TVRI Sport ditambahkan di sini -->
+        <div class="channel-chip" id="chip-tvrisport" onclick="changeChannel('tvrisport', true)">
+          <i class="fas fa-trophy"></i> TVRI Sport
+        </div>
+        <div class="channel-chip" id="chip-tsn1" onclick="changeChannel('tsn1', true)">
+          <i class="fas fa-futbol"></i> TSN 1
+        </div>
+        <div class="channel-chip" id="chip-foxone" onclick="changeChannel('foxone', true)">
+          <i class="fas fa-film"></i> FOX ONE
+        </div>
+        <div class="channel-chip" id="chip-itv" onclick="changeChannel('itv', true)">
+          <i class="fas fa-broadcast-tower"></i> ITV
+        </div>
+        <div class="channel-chip" id="chip-bein" onclick="changeChannel('bein', true)">
+          <i class="fas fa-globe"></i> BEIN
+        </div>
+        <div class="channel-chip" id="chip-telemundo" onclick="changeChannel('telemundo', true)">
+          <i class="fas fa-flag"></i> Telemundo
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const video = document.getElementById('videoPlayer');
+      const overlay = document.getElementById('playOverlay');
+      const overlayStatus = document.getElementById('overlayStatus');
+      const errorPanel = document.getElementById('errorPanel');
+      const errorText = document.getElementById('errorText');
+      const channelTitleDisplay = document.getElementById('channelTitleDisplay');
+
+      let hlsInstance = null;
+      let activeChannel = 'caze';
+      let isError = false;
+
+      // Konfigurasi Proxy Worker URL
+      const PROXY_URL = 'https://proxy.mrphreakers.workers.dev/?url=';
+      const PROXY2_URL = 'https://proxy2.mrphreakers.workers.dev/?url=';
+
+      // Data Channel & Properti Proxy
+      const channels = {
+        caze: { name: 'Caze TV', url: 'https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/1080p-vtt/index.m3u8', proxy: false },
+        tvrisport: { name: 'TVRI Sport', url: 'https://nexoratv.qzz.io/api/stream/20ce9ddc-e509-414a-be44-ffada2b7eabb', useProxy2: true, needsCredentials: true },
+        tsn1: { name: 'TSN 1', url: 'https://inproviszon.st/tsn1-xyz-waUvqaAACr.m3u8', proxy: true },
+        foxone: { name: 'FOX ONE', url: 'https://inproviszon.st/fox-xyz-waUvqaAACr.m3u8', proxy: true },
+        itv: { name: 'ITV', url: 'https://inproviszon.st/itv-xyz-waUvqaAACr.m3u8', proxy: true },
+        bein: { name: 'Bein', url: 'https://inproviszon.st/bein12fr-xyz.m3u8', proxy: true },
+        telemundo: { name: 'Telemundo', url: 'https://inproviszon.st/telemundo-xyz-waUvqaAACr.m3u8', proxy: true }
+      };
+
+      function setActiveChip(key) {
+        document.querySelectorAll('.channel-chip').forEach(el => el.classList.remove('active'));
+        document.getElementById(`chip-${key}`)?.classList.add('active');
+      }
+
+      function resetPlayer() {
+        if (hlsInstance) {
+          hlsInstance.destroy();
+          hlsInstance = null;
+        }
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        isError = false;
+        errorPanel.style.display = 'none';
+        overlay.classList.remove('hidden');
+        overlayStatus.textContent = 'Ketuk untuk Memutar';
+      }
+
+      function showError(msg) {
+        isError = true;
+        errorPanel.style.display = 'block';
+        errorText.textContent = msg || 'Gagal memuat channel.';
+        overlay.classList.add('hidden');
+      }
+
+      function loadChannel(channelKey, autoPlay = false) {
+        const channel = channels[channelKey];
+        if (!channel) return;
+
+        resetPlayer();
+        activeChannel = channelKey;
+        channelTitleDisplay.textContent = channel.name;
+        setActiveChip(channelKey);
+
+        let streamUrl = channel.url;
+        
+        // Logika penggunaan Proxy
+        if (channel.useProxy2) {
+          streamUrl = PROXY2_URL + encodeURIComponent(channel.url);
+        } else if (channel.proxy) {
+          streamUrl = PROXY_URL + encodeURIComponent(channel.url);
+        }
+
+        overlayStatus.textContent = 'Menghubungkan...';
+
+        const attemptPlay = () => {
+          video.play().then(() => {
+            overlay.classList.add('hidden');
+          }).catch(() => {
+            overlayStatus.textContent = 'Ketuk untuk memutar';
+          });
+        };
+
+        if (Hls.isSupported()) {
+          // Setup konfigurasi HLS
+          const hlsConfig = { maxBufferLength: 30, enableWorker: true };
+          
+          // Pengaturan dinamis mengirim Cookies untuk NexoraTV (Proxy2)
+          if (channel.needsCredentials) {
+            hlsConfig.xhrSetup = function(xhr, url) {
+                xhr.withCredentials = true; 
+            };
+          }
+
+          hlsInstance = new Hls(hlsConfig);
+          hlsInstance.loadSource(streamUrl);
+          hlsInstance.attachMedia(video);
+
+          hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+            if (autoPlay) attemptPlay();
+            else overlayStatus.textContent = 'Ketuk untuk memutar';
+          });
+
+          hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              showError('Stream tidak tersedia. Coba channel lain.');
+              hlsInstance.destroy();
+              hlsInstance = null;
+            }
+          });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = streamUrl;
+          if (autoPlay) video.addEventListener('loadedmetadata', attemptPlay, { once: true });
+        } else {
+          showError('Browser tidak mendukung HLS.');
+        }
+      }
+
+      window.changeChannel = function(key, autoPlay = true) {
+        if (activeChannel === key && !isError) {
+          if (video.paused) video.play().then(() => overlay.classList.add('hidden')).catch(()=>{});
+          return;
+        }
+        loadChannel(key, autoPlay);
+      };
+
+      overlay.addEventListener('click', () => {
+        if (isError) {
+          loadChannel(activeChannel, true);
+          return;
+        }
+        if (!video.src && !hlsInstance) {
+          loadChannel(activeChannel, true);
+          return;
+        }
+        video.play().then(() => overlay.classList.add('hidden')).catch(() => {
+          overlayStatus.textContent = 'Ketuk untuk memutar';
+        });
+      });
+
+      video.addEventListener('play', () => overlay.classList.add('hidden'));
+      video.addEventListener('pause', () => {
+        if (!isError && video.paused) {
+          overlay.classList.remove('hidden');
+          overlayStatus.textContent = 'Ketuk untuk melanjutkan';
+        }
+      });
+
+      window.addEventListener('load', () => {
+        loadChannel('caze', false);
+      });
+    })();
+  </script>
+</body>
+</html>
